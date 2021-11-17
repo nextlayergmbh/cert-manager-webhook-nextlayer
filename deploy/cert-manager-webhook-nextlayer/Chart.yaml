@@ -1,0 +1,8 @@
+apiVersion: v1
+description: A Helm chart for the next layer DNS webhook for cert-manager
+name: cert-manager-webhook-nextlayer
+version: 0.1.0
+appVersion: "0.1.0"
+maintainers:
+  - name: next layer GmbH
+    url: https://github.com/nextlayer/cert-manager-webhook-nextlayer

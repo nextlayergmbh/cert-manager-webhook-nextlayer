@@ -1,0 +1,25 @@
+groupName: dns.nextlayer.at
+
+certManager:
+  namespace: cert-manager
+  serviceAccountName: cert-manager
+
+image:
+  repository: registry.nextlayer.at/nextlayer/cert-manager-webhook-nextlayer
+  tag: latest
+  pullPolicy: Always
+
+nameOverride: "webhook-nextlayer"
+fullnameOverride: "cert-manager-webhook-nextlayer"
+
+service:
+  type: ClusterIP
+  port: 443
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
