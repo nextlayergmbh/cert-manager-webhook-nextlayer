@@ -35,11 +35,20 @@ Follow the [instructions](https://cert-manager.io/docs/installation/) using the 
 
 ### Webhook
 
+#### By cloning the repo
 ```bash
 git clone https://github.com/nextlayergmbh/cert-manager-webhook-nextlayer.git
 cd cert-manager-webhook-nextlayer
 helm install --namespace cert-manager cert-manager-webhook-nextlayer ./deploy/cert-manager-webhook-nextlayer
 ```
+
+#### By adding the helm repo
+```bash
+helm repo add nextlayercm https://nextlayergmbh.github.io/cert-manager-webhook-nextlayer/
+helm repo update
+helm install --namespace cert-manager nextlayercm/cert-manager-webhook-nextlayer
+```
+
 
 **Note**: The kubernetes resources used to install the Webhook should be deployed within the same namespace as the cert-manager.
 
