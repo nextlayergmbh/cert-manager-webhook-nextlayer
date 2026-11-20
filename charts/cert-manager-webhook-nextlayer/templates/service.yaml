@@ -2,18 +2,15 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "cert-manager-webhook-nextlayer.fullname" . }}
+  namespace: {{ include "cert-manager-webhook-nextlayer.namespace" . }}
   labels:
-    app: {{ include "cert-manager-webhook-nextlayer.name" . }}
-    chart: {{ include "cert-manager-webhook-nextlayer.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "cert-manager-webhook-nextlayer.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.service.type | default "ClusterIP" }}
   ports:
-    - port: {{ .Values.service.port }}
+    - port: {{ include "cert-manager-webhook-nextlayer.servicePort" . }}
       targetPort: https
       protocol: TCP
       name: https
   selector:
-    app: {{ include "cert-manager-webhook-nextlayer.name" . }}
-    release: {{ .Release.Name }}
+    {{- include "cert-manager-webhook-nextlayer.selectorLabels" . | nindent 4 }}

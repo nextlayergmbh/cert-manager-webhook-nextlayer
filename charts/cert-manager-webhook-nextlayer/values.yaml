@@ -1,4 +1,17 @@
 groupName: dns.nextlayer.at
+# Namespace to deploy the webhook into.
+   # Precedence: `helm install -n <ns>` (if not "default") > this value > "default".
+   # Note: an explicit `-n default` can't be distinguished from omitting -n,
+   # so in that case this value wins. The Helm release record is always
+   # stored in the -n (or kube context) namespace.
+namespace: ""
+
+replicaCount: 1
+
+webhook:
+  # Port the webhook listens on inside the container.
+  # Must be >= 1024 to run as non-root.
+  securePort: 8443
 
 certManager:
   namespace: cert-manager
@@ -9,12 +22,46 @@ image:
   tag: latest
   pullPolicy: Always
 
+# Secrets for pulling from registry.nextlayer.at.
+# Must exist in the webhook's namespace.
+imagePullSecrets: []
+#  - name: nextlayer-registry
+
 nameOverride: "webhook-nextlayer"
 fullnameOverride: "cert-manager-webhook-nextlayer"
 
 service:
   type: ClusterIP
   port: 443
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+rbac:
+  secretReader:
+    # Grants the webhook `get` on Secrets holding the API credentials.
+    enabled: true
+    # Namespaces containing the credential Secrets:
+    #  - Issuer:        the Issuer's namespace
+    #  - ClusterIssuer: cert-manager's cluster resource namespace
+    # Empty = [certManager.namespace]
+    namespaces: []
+    # Optionally restrict to specific Secret names. Empty = all Secrets
+    # in the namespaces above.
+    secretNames: []
+  flowcontrol:
+    # Silences "forbidden" log errors for flowschemas/prioritylevelconfigurations.
+    enabled: true
 
 resources: {}
 

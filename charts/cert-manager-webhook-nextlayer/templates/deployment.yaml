@@ -2,29 +2,34 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "cert-manager-webhook-nextlayer.fullname" . }}
+  namespace: {{ include "cert-manager-webhook-nextlayer.namespace" . }}
   labels:
-    app: {{ include "cert-manager-webhook-nextlayer.name" . }}
-    chart: {{ include "cert-manager-webhook-nextlayer.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "cert-manager-webhook-nextlayer.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "cert-manager-webhook-nextlayer.name" . }}
-      release: {{ .Release.Name }}
+      {{- include "cert-manager-webhook-nextlayer.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: {{ include "cert-manager-webhook-nextlayer.name" . }}
-        release: {{ .Release.Name }}
+        {{- include "cert-manager-webhook-nextlayer.labels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "cert-manager-webhook-nextlayer.fullname" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
+            - --secure-port={{ include "cert-manager-webhook-nextlayer.securePort" . }}
             - --tls-cert-file=/tls/tls.crt
             - --tls-private-key-file=/tls/tls.key
           env:
@@ -32,7 +37,7 @@ spec:
               value: {{ .Values.groupName | quote }}
           ports:
             - name: https
-              containerPort: 443
+              containerPort: {{ include "cert-manager-webhook-nextlayer.securePort" . }}
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -44,25 +49,36 @@ spec:
               scheme: HTTPS
               path: /healthz
               port: https
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           volumeMounts:
             - name: certs
               mountPath: /tls
               readOnly: true
+            # Writable scratch space, needed with readOnlyRootFilesystem
+            - name: tmp
+              mountPath: /tmp
+          {{- with .Values.resources }}
           resources:
-{{ toYaml .Values.resources | indent 12 }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
       volumes:
         - name: certs
           secret:
             secretName: {{ include "cert-manager-webhook-nextlayer.servingCertificate" . }}
-    {{- with .Values.nodeSelector }}
+        - name: tmp
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
       nodeSelector:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.affinity }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
       affinity:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.tolerations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
       tolerations:
-{{ toYaml . | indent 8 }}
-    {{- end }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

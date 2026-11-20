@@ -5,66 +5,52 @@ apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: {{ include "cert-manager-webhook-nextlayer.selfSignedIssuer" . }}
-  namespace: {{ .Release.Namespace | quote }}
+  namespace: {{ include "cert-manager-webhook-nextlayer.namespace" . }}
   labels:
-    app: {{ include "cert-manager-webhook-nextlayer.name" . }}
-    chart: {{ include "cert-manager-webhook-nextlayer.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "cert-manager-webhook-nextlayer.labels" . | nindent 4 }}
 spec:
   selfSigned: {}
 
 ---
-
 # Generate a CA Certificate used to sign certificates for the webhook
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: {{ include "cert-manager-webhook-nextlayer.rootCACertificate" . }}
-  namespace: {{ .Release.Namespace | quote }}
+  namespace: {{ include "cert-manager-webhook-nextlayer.namespace" . }}
   labels:
-    app: {{ include "cert-manager-webhook-nextlayer.name" . }}
-    chart: {{ include "cert-manager-webhook-nextlayer.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "cert-manager-webhook-nextlayer.labels" . | nindent 4 }}
 spec:
   secretName: {{ include "cert-manager-webhook-nextlayer.rootCACertificate" . }}
   duration: 43800h # 5y
   issuerRef:
     name: {{ include "cert-manager-webhook-nextlayer.selfSignedIssuer" . }}
-  commonName: "ca.cert-manager-webhook-nextlayer.cert-manager"
+    kind: Issuer
+  commonName: "ca.{{ include "cert-manager-webhook-nextlayer.fullname" . }}.{{ include "cert-manager-webhook-nextlayer.namespace" . }}"
   isCA: true
 
 ---
-
 # Create an Issuer that uses the above generated CA certificate to issue certs
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: {{ include "cert-manager-webhook-nextlayer.rootCAIssuer" . }}
-  namespace: {{ .Release.Namespace | quote }}
+  namespace: {{ include "cert-manager-webhook-nextlayer.namespace" . }}
   labels:
-    app: {{ include "cert-manager-webhook-nextlayer.name" . }}
-    chart: {{ include "cert-manager-webhook-nextlayer.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "cert-manager-webhook-nextlayer.labels" . | nindent 4 }}
 spec:
   ca:
     secretName: {{ include "cert-manager-webhook-nextlayer.rootCACertificate" . }}
 
 ---
-
 # Finally, generate a serving certificate for the webhook to use
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: {{ include "cert-manager-webhook-nextlayer.servingCertificate" . }}
-  namespace: {{ .Release.Namespace | quote }}
+  namespace: {{ include "cert-manager-webhook-nextlayer.namespace" . }}
   labels:
-    app: {{ include "cert-manager-webhook-nextlayer.name" . }}
-    chart: {{ include "cert-manager-webhook-nextlayer.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "cert-manager-webhook-nextlayer.labels" . | nindent 4 }}
 spec:
   secretName: {{ include "cert-manager-webhook-nextlayer.servingCertificate" . }}
   duration: 8760h # 1y
@@ -72,5 +58,5 @@ spec:
     name: {{ include "cert-manager-webhook-nextlayer.rootCAIssuer" . }}
   dnsNames:
   - {{ include "cert-manager-webhook-nextlayer.fullname" . }}
-  - {{ include "cert-manager-webhook-nextlayer.fullname" . }}.{{ .Release.Namespace }}
-  - {{ include "cert-manager-webhook-nextlayer.fullname" . }}.{{ .Release.Namespace }}.svc
+  - {{ include "cert-manager-webhook-nextlayer.fullname" . }}.{{ include "cert-manager-webhook-nextlayer.namespace" . }}
+  - {{ include "cert-manager-webhook-nextlayer.fullname" . }}.{{ include "cert-manager-webhook-nextlayer.namespace" . }}.svc
