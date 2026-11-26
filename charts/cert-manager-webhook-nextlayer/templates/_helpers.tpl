@@ -8,7 +8,7 @@ Expand the name of the chart.
 
 {{/*
 Namespace for all namespaced resources: the release namespace,
-set via `helm -n` or kustomize's helmCharts[].namespace.
+set via `helm -n` or kustomize helmCharts[].namespace.
 */}}
 {{- define "cert-manager-webhook-nextlayer.namespace" -}}
 {{- .Release.Namespace -}}
