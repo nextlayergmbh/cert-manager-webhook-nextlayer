@@ -4,7 +4,6 @@ groupName: dns.nextlayer.at
    # Note: an explicit `-n default` can't be distinguished from omitting -n,
    # so in that case this value wins. The Helm release record is always
    # stored in the -n (or kube context) namespace.
-namespace: ""
 
 replicaCount: 1
 

@@ -7,17 +7,11 @@ Expand the name of the chart.
 {{- end -}}
 
 {{/*
-Namespace resolution order:
-  1. CLI (-n / --namespace), if not "default"
-  2. .Values.namespace
-  3. "default"
+Namespace for all namespaced resources: the release namespace,
+set via `helm -n` or kustomize's helmCharts[].namespace.
 */}}
 {{- define "cert-manager-webhook-nextlayer.namespace" -}}
-{{- if ne .Release.Namespace "default" -}}
 {{- .Release.Namespace -}}
-{{- else -}}
-{{- .Values.namespace | default "default" -}}
-{{- end -}}
 {{- end -}}
 
 {{/*
