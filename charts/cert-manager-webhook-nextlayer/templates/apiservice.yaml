@@ -3,17 +3,15 @@ kind: APIService
 metadata:
   name: v1alpha1.{{ .Values.groupName }}
   labels:
-    app: {{ include "cert-manager-webhook-nextlayer.name" . }}
-    chart: {{ include "cert-manager-webhook-nextlayer.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "cert-manager-webhook-nextlayer.labels" . | nindent 4 }}
   annotations:
-    cert-manager.io/inject-ca-from: "{{ .Release.Namespace }}/{{ include "cert-manager-webhook-nextlayer.servingCertificate" . }}"
+    cert-manager.io/inject-ca-from: "{{ include "cert-manager-webhook-nextlayer.namespace" . }}/{{ include "cert-manager-webhook-nextlayer.servingCertificate" . }}"
 spec:
-  group: {{ .Values.groupName }}
+  group: {{ .Values.groupName | quote }}
   groupPriorityMinimum: 1000
   versionPriority: 15
   service:
     name: {{ include "cert-manager-webhook-nextlayer.fullname" . }}
-    namespace: {{ .Release.Namespace }}
+    namespace: {{ include "cert-manager-webhook-nextlayer.namespace" . }}
+    port: {{ include "cert-manager-webhook-nextlayer.servicePort" . }}
   version: v1alpha1
